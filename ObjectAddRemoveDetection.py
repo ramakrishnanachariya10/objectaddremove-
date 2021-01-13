@@ -21,7 +21,7 @@ def timestamp():
 
 def scene_obj_Change(c,regularized=0.0001,acceptance=0.01,roi=False,diffvisualize=False,viewFeatures=False,kernel=cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))):
    
-    LOG_FILENAME = datetime.now().strftime('logfile_%H_%M_%S_%d_%m_%Y.log')
+    LOG_FILENAME = datetime.now().strftime('logs/logfile_%H_%M_%S_%d_%m_%Y.log')
     logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)    
     logging.info('Scene Object change detection Job Started...')
     logging.debug('Monitering started...')
