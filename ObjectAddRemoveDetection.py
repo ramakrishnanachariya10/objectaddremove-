@@ -5,33 +5,46 @@ import cv2
 import numpy as np
 import pandas as pd
 import time
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+from roipoly import MultiRoi
 from queue import Queue
 import logging
 from datetime import datetime
 import sys
+import imutils
+import joblib
 
-print(cv2.__version__)
 
 def timestamp():
     return datetime.now().strftime('%H_%M_%S_%d_%m_%Y')
 
-def scene_obj_Change(c,regularized=0.0001,acceptance=0.01,diffvisualize=False,viewFeatures=False,kernel=cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))):
+def scene_obj_Change(c,regularized=0.0001,acceptance=0.01,roi=False,diffvisualize=False,viewFeatures=False,kernel=cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))):
    
     LOG_FILENAME = datetime.now().strftime('logfile_%H_%M_%S_%d_%m_%Y.log')
     logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)    
     logging.info('Scene Object change detection Job Started...')
     logging.debug('Monitering started...')
       
-    try:
-        rt,f = c.read()
-        if rt:
-            avg1 = np.float32(cv2.resize(f,(imsize,imsize)))
-            avg2 = np.float32(cv2.resize(f,(imsize,imsize)))
-            avg3 = np.float32(cv2.resize(f,(imsize,imsize)))
-    except:
-        logging.error('file reading problem is occured....')
-        sys.exit('file has some issue')
+    #try:
+    rt,f = c.read()
+    if rt:
+        avg1 = np.float32(cv2.resize(f,(imsize,imsize)))
+        avg2 = np.float32(cv2.resize(f,(imsize,imsize)))
+        avg3 = np.float32(cv2.resize(f,(imsize,imsize)))
+    if roi:
+        plt.imshow(f, interpolation='nearest', cmap="Greys")
+        multiroi_named = MultiRoi(roi_names=[])
+        
+        for name, roi in multiroi_named.rois.items():
+            print(roi.x)
+        polyX=roi.x
+        polyY=roi.y         
+        poly=[[polyX[i],polyY[i]] for i in range(len(polyX))]
+        print(poly)
+                
+   # except:
+   #     logging.error('file reading problem is occured....')
+    #    sys.exit('file has some issue')
 
     while(1):
         ret,f = c.read()
@@ -71,6 +84,10 @@ def scene_obj_Change(c,regularized=0.0001,acceptance=0.01,diffvisualize=False,vi
                 x,y,w,h = cv2.boundingRect(contours)
                 if w or h <20:
                     cv2.rectangle(f,(x,y),(x+w,y+h),(0,255,0),2)
+                if roi:
+                    res=cv2.pointPolygonTest(poly,(x,y),False)
+                    if res>1:
+                        print('change detected')
                     logging.info(timestamp()+ ': Change detected')
             cv2.imshow('img',f)
             #result1.write(objchangemodel)
@@ -105,7 +122,7 @@ if __name__ == "__main__":
     #c = cv2.VideoCapture(0)
     kernel=cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
     c = cv2.VideoCapture(video)
-    scene_obj_Change(c,regularized=0.001,acceptance=0.01,viewFeatures=False,kernel=cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3)))
+    scene_obj_Change(c,regularized=0.001,acceptance=0.01,roi=True,viewFeatures=False,kernel=cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3)))
 
 
 
