@@ -13,6 +13,7 @@ from datetime import datetime
 import sys
 import imutils
 import joblib
+from shapely.geometry import Point, Polygon
 
 
 def timestamp():
@@ -39,7 +40,7 @@ def scene_obj_Change(c,regularized=0.0001,acceptance=0.01,roi=False,diffvisualiz
             print(roi.x)
         polyX=roi.x
         polyY=roi.y         
-        poly=[[polyX[i],polyY[i]] for i in range(len(polyX))]
+        poly=[(polyX[i],polyY[i]) for i in range(len(polyX))]
         print(poly)
                 
    # except:
@@ -85,8 +86,8 @@ def scene_obj_Change(c,regularized=0.0001,acceptance=0.01,roi=False,diffvisualiz
                 if w or h <20:
                     cv2.rectangle(f,(x,y),(x+w,y+h),(0,255,0),2)
                 if roi:
-                    res=cv2.pointPolygonTest(poly,(x,y),False)
-                    if res>1:
+                    res=Point(x,y).within(Polygon(poly))
+                    if res:
                         print('change detected')
                     logging.info(timestamp()+ ': Change detected')
             cv2.imshow('img',f)
