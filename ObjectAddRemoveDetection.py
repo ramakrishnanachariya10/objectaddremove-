@@ -41,6 +41,7 @@ def scene_obj_Change(c,regularized=0.0001,acceptance=0.01,roi=False,diffvisualiz
         polyX=roi.x
         polyY=roi.y         
         poly=[(polyX[i],polyY[i]) for i in range(len(polyX))]
+        polyr=[[polyX[i],polyY[i]] for i in range(len(polyX))]
         print(poly)
                 
    # except:
@@ -83,12 +84,14 @@ def scene_obj_Change(c,regularized=0.0001,acceptance=0.01,roi=False,diffvisualiz
 
             if len(contours)>1:
                 x,y,w,h = cv2.boundingRect(contours)
-                if w or h <20:
+                if w>20 and h>20:
                     if roi:
+                        
                         cv2.rectangle(f,(x,y),(x+w,y+h),(0,255,0),2)
-                        if Point(x+w/2,y+h/2).within(Polygon(poly)):
+                        cv2.circle(f,(int(x+w/2),int(y+h/2)),3,(0,255,0),2)
+                        if not Point(x+(w/2),y+(h/2)).within(Polygon(poly)):
                             print('change detected')
-                            cv2.rectangle(f,(x,y),(x+w,y+h),(255,255,0),2)
+                            cv2.rectangle(f,(x,y),(x+w,y+h),(0,0,255),4)
                             logging.info(timestamp()+ ': Change detected')
             cv2.imshow('img',f)
             #result1.write(objchangemodel)
