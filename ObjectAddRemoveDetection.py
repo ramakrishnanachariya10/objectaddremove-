@@ -84,12 +84,12 @@ def scene_obj_Change(c,regularized=0.0001,acceptance=0.01,roi=False,diffvisualiz
             if len(contours)>1:
                 x,y,w,h = cv2.boundingRect(contours)
                 if w or h <20:
-                    cv2.rectangle(f,(x,y),(x+w,y+h),(0,255,0),2)
-                if roi:
-                    res=Point(x,y).within(Polygon(poly))
-                    if res:
-                        print('change detected')
-                    logging.info(timestamp()+ ': Change detected')
+                    if roi:
+                        cv2.rectangle(f,(x,y),(x+w,y+h),(0,255,0),2)
+                        if Point(x+w/2,y+h/2).within(Polygon(poly)):
+                            print('change detected')
+                            cv2.rectangle(f,(x,y),(x+w,y+h),(255,255,0),2)
+                            logging.info(timestamp()+ ': Change detected')
             cv2.imshow('img',f)
             #result1.write(objchangemodel)
             if viewFeatures:
