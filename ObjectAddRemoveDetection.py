@@ -14,12 +14,14 @@ import sys
 import imutils
 import joblib
 from shapely.geometry import Point, Polygon
-
+import os.path
+from os import path
+import pickle
 
 def timestamp():
     return datetime.now().strftime('%H_%M_%S_%d_%m_%Y')
 
-def scene_obj_Change(c,regularized=0.0001,acceptance=0.01,objsize=5,roi=False,diffvisualize=False,viewFeatures=False,kernel=cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))):
+def scene_obj_Change(cam_name,c,regularized=0.0001,acceptance=0.01,objsize=5,roi=False,diffvisualize=False,viewFeatures=False,kernel=cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))):
    
     LOG_FILENAME = datetime.now().strftime('logs/logfile_%H_%M_%S_%d_%m_%Y.log')
     logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)    
@@ -34,16 +36,23 @@ def scene_obj_Change(c,regularized=0.0001,acceptance=0.01,objsize=5,roi=False,di
         avg2 = np.float32(cv2.resize(f,(imsize,imsize)))
         avg3 = np.float32(cv2.resize(f,(imsize,imsize)))
     if roi:
-        plt.imshow(f, interpolation='nearest', cmap="Greys")
-        multiroi_named = MultiRoi(roi_names=[])
-        
-        for name, roi in multiroi_named.rois.items():
-            print(roi.x)
-        polyX=roi.x
-        polyY=roi.y         
-        poly=[(polyX[i],polyY[i]) for i in range(len(polyX))]
-        polyr=[[polyX[i],polyY[i]] for i in range(len(polyX))]
-        print(poly)
+
+        if path.exists(cam_name+'.pickle'):
+            with open(cam_name+'.pickle', 'rb') as handle:
+                poly = pickle.load(handle)
+        else:
+            plt.imshow(f, interpolation='nearest', cmap="Greys")
+            multiroi_named = MultiRoi(roi_names=[])
+            
+            for name, roi in multiroi_named.rois.items():
+                print(roi.x)
+            polyX=roi.x
+            polyY=roi.y         
+            poly=[(polyX[i],polyY[i]) for i in range(len(polyX))]
+            polyr=[[polyX[i],polyY[i]] for i in range(len(polyX))]
+            print(poly)
+            with open(cam_name+'.pickle', 'wb') as handle:
+                pickle.dump(poly, handle, protocol=pickle.HIGHEST_PROTOCOL)
                 
    # except:
    #     logging.error('file reading problem is occured....')
@@ -51,12 +60,14 @@ def scene_obj_Change(c,regularized=0.0001,acceptance=0.01,objsize=5,roi=False,di
 
     while(1):
         ret,f = c.read()
-        of=f.copy()
+        
         if ret: 
             f=cv2.resize(f,(imsize,imsize))
+            of=f.copy()
             #mask = roi.get_mask(cv2.cvtColor(f, cv2.COLOR_BGR2GRAY))
             
             if roi:
+                
                 mask = np.zeros(f.shape, dtype=np.uint8)
                 roi_corners = np.array([poly], dtype=np.int32)
                 # fill the ROI so it doesn't get wiped out when the mask is applied
@@ -65,6 +76,7 @@ def scene_obj_Change(c,regularized=0.0001,acceptance=0.01,objsize=5,roi=False,di
                 cv2.fillPoly(mask, roi_corners, ignore_mask_color)
                 # apply the mask
                 f= cv2.bitwise_and(f, mask)
+                cv2.imshow('mask',f)
 
             frm1=cv2.cvtColor(f, cv2.COLOR_BGR2GRAY)
 
@@ -89,10 +101,10 @@ def scene_obj_Change(c,regularized=0.0001,acceptance=0.01,objsize=5,roi=False,di
 
             objchangemodel=cv2.absdiff(cv2.absdiff(res2,res1),cv2.subtract(res2,res1))
             objchangemodel=cv2.cvtColor(objchangemodel, cv2.COLOR_BGR2GRAY)
-            ret, objchangemodel = cv2.threshold(objchangemodel, 20,255 ,0)
-            opening2 = cv2.morphologyEx(objchangemodel, cv2.MORPH_OPEN, kernel)
-            #opening2 = cv2.dilate(opening2,kernel,iterations = 1)
-            contours,thh,uu= cv2.findContours(opening2,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) 
+            ret, objchangemodel = cv2.threshold(objchangemodel, 10,255 ,0)
+            opening2 = cv2.morphologyEx(objchangemodel, cv2.MORPH_OPEN, kernel,iterations=3)
+            opening2 = cv2.morphologyEx(opening2, cv2.MORPH_CLOSE, kernel)
+            contours,thh,uu= cv2.findContours(opening2,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) 
 
             #print("Number of Contours found = " + str(len(contours))) 
 
@@ -126,9 +138,9 @@ if __name__ == "__main__":
     video='/home/ram/pivotchain/out4.mp4'
     imsize = 600
     #c = cv2.VideoCapture(0)
-    kernel=cv2.getStructuringElement(cv2.MORPH_CROSS,(2,2))
+    kernel=cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
     c = cv2.VideoCapture(video)
-    scene_obj_Change(c,regularized=0.001,acceptance=0.09,objsize=10 ,roi=True,viewFeatures=True,kernel=cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3)))
+    scene_obj_Change('1',c,regularized=1/1000,acceptance=1/100,objsize=20 ,roi=True,viewFeatures=True,kernel=cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3)))
 
 
 
