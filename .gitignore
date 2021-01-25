@@ -1,2 +1,2 @@
 #logfiles have to ignore
-*.log
+logs/*.log

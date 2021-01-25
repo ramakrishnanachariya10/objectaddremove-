@@ -104,7 +104,7 @@ def scene_obj_Change(cam_name,c,regularized=0.0001,acceptance=0.01,objsize=5,roi
             ret, objchangemodel = cv2.threshold(objchangemodel, 10,255 ,0)
             opening2 = cv2.morphologyEx(objchangemodel, cv2.MORPH_OPEN, kernel,iterations=3)
             opening2 = cv2.morphologyEx(opening2, cv2.MORPH_CLOSE, kernel)
-            contours,thh,uu= cv2.findContours(opening2,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) 
+            contours,thh= cv2.findContours(opening2,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) 
 
             #print("Number of Contours found = " + str(len(contours))) 
 
@@ -135,7 +135,7 @@ def scene_obj_Change(cam_name,c,regularized=0.0001,acceptance=0.01,objsize=5,roi
     
 if __name__ == "__main__":
 
-    video='/home/ram/pivotchain/out4.mp4'
+    video='/home/ram/Dataset/kotak_helmet_addition_removal.mp4'
     imsize = 600
     #c = cv2.VideoCapture(0)
     kernel=cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
