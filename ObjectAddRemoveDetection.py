@@ -109,7 +109,7 @@ def scene_obj_Change(cam_name,c,regularized=0.0001,acceptance=0.01,objsize=5,roi
             #print("Number of Contours found = " + str(len(contours))) 
 
             if len(contours)>1:
-                x,y,w,h = cv2.boundingRect(contours)
+                x,y,w,h = cv2.boundingRect(contours[0])
                 if w>objsize and h>objsize:
                     if roi:
                         
@@ -135,7 +135,7 @@ def scene_obj_Change(cam_name,c,regularized=0.0001,acceptance=0.01,objsize=5,roi
     
 if __name__ == "__main__":
 
-    video='/home/ram/Dataset/kotak_helmet_addition_removal.mp4'
+    video='/home/ram/Dataset/out4.mp4'
     imsize = 600
     #c = cv2.VideoCapture(0)
     kernel=cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
